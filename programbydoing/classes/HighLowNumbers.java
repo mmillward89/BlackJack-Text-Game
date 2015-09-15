@@ -32,5 +32,7 @@ public class HighLowNumbers {
 		} else {
 			System.out.println("You didn't get it! Answer was 57.");
 		}
+		
+		in.close();
 	}
 }
