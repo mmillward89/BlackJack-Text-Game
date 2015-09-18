@@ -1,4 +1,4 @@
-package programbydoing.classes;
+package BlackJack;
 
 public class BlackJackDealer {
 

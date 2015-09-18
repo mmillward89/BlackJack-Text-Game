@@ -1,14 +1,14 @@
-package programbydoing.classes;
+package BlackJack;
 import java.util.*;
 
 public class BlackJack {
 	private int[] hearts, diamonds, spades, clubs, playerhand, extracards;
 	private ArrayList<int[]> cards;
-	private int playervalue, aces;
 	private Scanner in;
-	private boolean quit, stay, tie;
+	private boolean quit, stay;
 	private BlackJackMessages messages;
 	private BlackJackDealer dealer;
+	private BlackJackScorer scorer;
 	
 	public BlackJack() {
 		hearts = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10};
@@ -28,21 +28,26 @@ public class BlackJack {
 		in = new Scanner(System.in);
 		messages = new BlackJackMessages();
 		dealer = new BlackJackDealer();
+		scorer = new BlackJackScorer();
 		
-		stay = false; quit = false; tie = false;
-		int aces = 0;
+		stay = false; quit = false;
 	}
 	
-	public void game() {
+	public static void main(String[] args) {
+		BlackJack bj = new BlackJack();
+		bj.startGame();
+	}
+	
+	public void startGame() {
 		//Deal hands and add up initial values
 		shuffleUpandDeal(playerhand);
 		shuffleUpandDeal(dealer.getDealerHand());
-		playervalue = playerhand[0] + playerhand[1];
+		scorer.setPlayerValue(playerhand[0] + playerhand[1]);
 		dealer.addDealerValue();
 		
 		messages.introMessage(playerhand[0], playerhand[1], dealer.getFirstCard());
-		if(checkIf21()) {
-			System.out.println("21! Isn't that fortunate?");
+		if(scorer.checkIf21(playerhand, extracards)) {
+			messages.blackjackMessage();
 			messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
 			System.out.println("Thank you for playing!");
 		} else {
@@ -51,7 +56,7 @@ public class BlackJack {
 		
 }
 	
-	public void gameLoop() {
+	private void gameLoop() {
 
 		String input = "";
 		
@@ -74,20 +79,20 @@ public class BlackJack {
 				}
 				
 				//add new value to total and tell player cards
-				playervalue += newCard;
+				scorer.setPlayerValue(newCard);
 				currentCards();
 				
 				//Confirm if drawn card has won player game
-				if(checkIf21()) {
+				if(scorer.checkIf21(playerhand, extracards)) {
 					messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
 					quit = true;
 				}
 				
 				//If bust, tells player and quits the app
-				if(checkIfBust()) {
+				if(scorer.checkIfBust()) {
 					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
 					quit = true;
-				} else if (checkIf21() == false){
+				} else if (scorer.checkIf21(playerhand, extracards) == false){
 					in.nextLine();
 				}
 			
@@ -97,7 +102,7 @@ public class BlackJack {
 				System.out.println("You have chosen to stay");
 				currentCards();
 				
-				if(checkIfBust()) {
+				if(scorer.checkIfBust()) {
 					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
 					quit = true;
 				}
@@ -119,23 +124,23 @@ public class BlackJack {
 		}	
 		
 		if(stay == true) {
-			if(playerHasAce()) {
+			if(scorer.playerHasAce(playerhand, extracards)) {
 				//Loop for number of aces player drew
 				
-				for(int i=0; i<aces; i++) {
+				for(int i=0; i<scorer.getAces(); i++) {
 				System.out.println("");
 				System.out.println("You drew an ace, would you like it"
 						+ " to count for 1 or 11?");
-				confirmAce();
+				scorer.confirmAce(in);
 				}
 			}
 	
-			if(checkIfWon()) {
+			if(scorer.checkIfWon(dealer.getDealerValue(), playerhand, extracards)) {
 				messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
-			} else if (tie == false){
-				messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
-			} else {
+			} else if (scorer.getTie()){
 				messages.tieMessage();
+			} else {
+				messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
 			}
 		}
 	
@@ -149,7 +154,7 @@ public class BlackJack {
 			}
 		}
 	
-	public int drawNewCard() {
+	private int drawNewCard() {
 		//pick a random suit
 		Random r = new Random();
 		int suit = r.nextInt(4);
@@ -171,89 +176,7 @@ public class BlackJack {
 		return card;
 	}
 	
-	public boolean playerHasAce() {
-		boolean ace = false;
-		
-		for(int i=0; i<playerhand.length;i++) {
-			if(playerhand[i] == 1) {
-				ace = true; aces++;
-			}
-		}
-		
-		for(int i=0; i<extracards.length; i++) {
-			if(extracards[i] == 0) {
-				i = extracards.length - 1;
-			} if (extracards[i] == 1) {
-				ace = true; aces++;
-			}
-		}
-		return ace;
-	}
-	
-	public void confirmAce() {
-		int i = 0;
-		boolean b = false;
-		
-		while(b == false) {
-			try {
-				i = in.nextInt();
-				
-				if(i == 11) {
-					playervalue+=10;
-				} if(i == 1 || i==11){
-					b = true;
-				} else {
-					System.out.println("Please enter 1 or 11");
-				}
-				
-			} catch (InputMismatchException e) {
-				System.out.println("Please enter 1 or 11");
-				in.nextLine();
-			}
-		}
-
-		in.nextLine();
-	}
-	
-	public boolean checkIfBust() {
-		if(playervalue>21){
-			System.out.println("");
-			System.out.println("You've bust I'm afraid!");
-		return true;
-		}
-		return false;
-	}
-	
-	public boolean checkIf21() {
-		if(playervalue == 21) { return true; }
-		
-		//Check that a player has an ace, and if that ace being
-		//11 would result in a 21 (will otherwise register automatically
-		// if a 1.
-		if(playerHasAce()) {
-				int tempValue = playervalue + 10;
-				if(tempValue == 21) {
-					return true;
-				}
-			}
-		return false;
-	}
-	
-	
-	public boolean checkIfWon() {
-		if(checkIf21()) {
-			return true;
-		} else if (dealer.getDealerValue() == 21){
-			return false;
-		} else if(playervalue > dealer.getDealerValue()){
-			return true;
-		} else if (playervalue == dealer.getDealerValue()) {
-			tie = true; return false; 
-		}
-		return false;
-	}
-	
-	public void currentCards() {
+	private void currentCards() {
 		System.out.println("");
 		System.out.println("You current cards are: ");
 		for(int i=0; i<playerhand.length;i++) {
