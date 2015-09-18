@@ -10,26 +10,29 @@ public class BlackJackMessages {
 	}
 	
 	void blackjackMessage() {
-		System.out.println("You drew 21! How fortunate!");
+		System.out.println("");
+		System.out.println("You drew 21! Excellent!");
 	}
 	
-	void winMessage(int a, int b) {
+	void winMessage() {
 		System.out.println("");
-		System.out.println("Dealer reveals his hand, he has a " + a + 
-				" and a " + b + ".");
 		System.out.println("Congratulations! You won! "
 				+ "Now cash in before you get ahead of yourself.");
 	}
 	
-	void lossMessage(int a, int b) {
+	void lossMessage() {
 		System.out.println("");
-		System.out.println("Dealer reveals his hand, he has a " + a + 
-				" and a " + b + ".");
 		System.out.println("Sadly you lost. The house always wins...");
 	}
 	
 	void tieMessage() {
 		System.out.println("");
-		System.out.println("It's a tie! Nobody wins. Yaaay.");
+		System.out.println("It's a tie! You split the pot. Yaaay.");
+	}
+	
+	void aceMessage() {
+		System.out.println("");
+		System.out.println("You drew an ace, would you like it"
+				+ " to count for 1 or 11?");
 	}
 }

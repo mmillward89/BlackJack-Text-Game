@@ -17,12 +17,25 @@ public class BlackJackScorer {
 		this.playervalue += playervalue;
 	}
 	
+	int getPlayerValue() {
+		return playervalue;
+	}
+	
 	int getAces() {
 		return aces;
 	}
 	
 	boolean getTie() {
 		return tie;
+	}
+	
+	boolean checkIf21(int[] playerhand) {
+		if(playerhand[0] == 10 && playerhand[1] == 1){
+			return true;
+		} if(playerhand[0] == 1 && playerhand[1] == 10){
+			return true;
+		}
+		return false;
 	}
 	
 	boolean playerHasAce(int[] playerhand, int[] extracards) {
@@ -35,11 +48,11 @@ public class BlackJackScorer {
 		}
 		
 		for(int i=0; i<extracards.length; i++) {
-			if(extracards[i] == 0) {
-				i = extracards.length - 1;
-			} if (extracards[i] == 1) {
+			if (extracards[i] == 1) {
 				ace = true; aces++;
-			}
+			} if(extracards[i] == 0) {
+				i = extracards.length;
+			} 
 		}
 		return ace;
 	}
@@ -78,21 +91,8 @@ public class BlackJackScorer {
 		return false;
 	}
 	
-	boolean checkIf21(int[] playerhand, int[] extracards) {
-		if(playervalue == 21) { return true; }
-		
-		if(playerHasAce(playerhand, extracards)) {
-				int tempValue = playervalue + 10;
-				if(tempValue == 21) {
-					return true;
-				}
-			}
-		return false;
-	}
-	
-	
-	boolean checkIfWon(int dealervalue, int[] playerhand, int[] extracards) {
-		if(checkIf21(playerhand, extracards)) {
+	boolean checkIfWon(int dealervalue) {
+		if(playervalue == 21) {
 			return true;
 		} else if (dealervalue == 21){
 			return false;

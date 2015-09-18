@@ -42,22 +42,22 @@ public class BlackJack {
 		//Deal hands and add up initial values
 		shuffleUpandDeal(playerhand);
 		shuffleUpandDeal(dealer.getDealerHand());
+		
 		scorer.setPlayerValue(playerhand[0] + playerhand[1]);
 		dealer.addDealerValue();
+		dealer.checkForAce(dealer.getDealerHand());
 		
 		messages.introMessage(playerhand[0], playerhand[1], dealer.getFirstCard());
-		if(scorer.checkIf21(playerhand, extracards)) {
-			messages.blackjackMessage();
-			messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
-			System.out.println("Thank you for playing!");
+		
+		if(scorer.checkIf21(playerhand)) {
+			messages.blackjackMessage(); 
+			messages.winMessage();
 		} else {
 			gameLoop();
-		}
-		
+		}	
 }
 	
 	private void gameLoop() {
-
 		String input = "";
 		
 		//main gameplay loop
@@ -66,7 +66,6 @@ public class BlackJack {
 			input = in.nextLine();
 			
 			switch(input) {
-			
 			case "hit":
 				int newCard = drawNewCard();
 				
@@ -82,17 +81,18 @@ public class BlackJack {
 				scorer.setPlayerValue(newCard);
 				currentCards();
 				
-				//Confirm if drawn card has won player game
-				if(scorer.checkIf21(playerhand, extracards)) {
-					messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
+				if(scorer.getPlayerValue() == 21) {
+					messages.blackjackMessage();
+					messages.winMessage();
 					quit = true;
 				}
 				
 				//If bust, tells player and quits the app
 				if(scorer.checkIfBust()) {
-					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
+					dealer.currentDealerCards();
+					messages.lossMessage();
 					quit = true;
-				} else if (scorer.checkIf21(playerhand, extracards) == false){
+				} else {
 					in.nextLine();
 				}
 			
@@ -103,7 +103,8 @@ public class BlackJack {
 				currentCards();
 				
 				if(scorer.checkIfBust()) {
-					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
+					dealer.currentDealerCards();
+					messages.lossMessage();
 					quit = true;
 				}
 				
@@ -123,29 +124,49 @@ public class BlackJack {
 			
 		}	
 		
-		if(stay == true) {
-			if(scorer.playerHasAce(playerhand, extracards)) {
-				//Loop for number of aces player drew
+	if(stay == true) {
+		if(scorer.playerHasAce(playerhand, extracards)) {
 				
-				for(int i=0; i<scorer.getAces(); i++) {
-				System.out.println("");
-				System.out.println("You drew an ace, would you like it"
-						+ " to count for 1 or 11?");
-				scorer.confirmAce(in);
-				}
-			}
-	
-			if(scorer.checkIfWon(dealer.getDealerValue(), playerhand, extracards)) {
-				messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
-			} else if (scorer.getTie()){
-				messages.tieMessage();
-			} else {
-				messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
+			//Loop for number of aces player drew
+			for(int i=0; i<scorer.getAces(); i++) {
+			messages.aceMessage();
+			scorer.confirmAce(in);				
 			}
 		}
 	
-		System.out.println("Thank you for playing!");
-	}
+		if(scorer.checkIfBust()) {
+			dealer.currentDealerCards();
+			messages.lossMessage();
+		} else {
+			dealer.dealerHandMessage();
+			boolean dealerBust = false;
+			
+			//Confirm if dealer should hit, then check if bust
+			while (dealer.shouldDealerHit(scorer.getPlayerValue())) {
+				int card = drawNewCard();
+				dealer.drawCard(card);
+				System.out.println("Dealer hits, and draws a " + card + ".");
+				dealerBust = dealer.checkIfBust();
+			}
+			
+			if(dealerBust == false) {
+				if(scorer.checkIfWon(dealer.getDealerValue())) {
+					messages.winMessage();
+				} else if (scorer.getTie()){
+					messages.tieMessage();
+				} else {
+					messages.lossMessage();
+				}
+			} else {
+				System.out.println("The dealer has bust!");
+				messages.winMessage();
+			}
+		}
+	}		
+	System.out.println("Thank you for playing!");	
+}
+	
+	//Game loop ends here and card drawing functionality begins
 	
 	public void shuffleUpandDeal(int[] hand) {
 		for(int i=0;i<hand.length;i++) {
@@ -193,9 +214,7 @@ public class BlackJack {
 			} else {
 			System.out.print(" " + extracards[i]);
 			}
-		}
-		
+		}	
 	}
-	
-	}
+}
 	
