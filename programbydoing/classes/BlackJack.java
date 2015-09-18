@@ -2,11 +2,13 @@ package programbydoing.classes;
 import java.util.*;
 
 public class BlackJack {
-	private int[] hearts, diamonds, spades, clubs, playerhand, dealerhand, extracards;
+	private int[] hearts, diamonds, spades, clubs, playerhand, extracards;
 	private ArrayList<int[]> cards;
-	private int playervalue, dealervalue;
+	private int playervalue, aces;
 	private Scanner in;
-	private boolean bust;
+	private boolean quit, stay, tie;
+	private BlackJackMessages messages;
+	private BlackJackDealer dealer;
 	
 	public BlackJack() {
 		hearts = new int[] {1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10};
@@ -21,29 +23,49 @@ public class BlackJack {
 		cards.add(clubs);
 		
 		playerhand = new int[2];
-		dealerhand = new int[2];
-		extracards = new int[21];
+		extracards = new int[10];
 		
 		in = new Scanner(System.in);
-		bust = false;
+		messages = new BlackJackMessages();
+		dealer = new BlackJackDealer();
+		
+		stay = false; quit = false; tie = false;
+		int aces = 0;
 	}
 	
 	public void game() {
+		//Deal hands and add up initial values
 		shuffleUpandDeal(playerhand);
-		shuffleUpandDeal(dealerhand);
+		shuffleUpandDeal(dealer.getDealerHand());
 		playervalue = playerhand[0] + playerhand[1];
-		dealervalue= dealerhand[0] + dealerhand[1];
+		dealer.addDealerValue();
+		
+		messages.introMessage(playerhand[0], playerhand[1], dealer.getFirstCard());
+		if(checkIf21()) {
+			System.out.println("21! Isn't that fortunate?");
+			messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
+			System.out.println("Thank you for playing!");
+		} else {
+			gameLoop();
+		}
+		
+}
 	
-		introMessage();
+	public void gameLoop() {
+
 		String input = "";
 		
-		while(!(input.equals("quit")) || !(input.equals("stay"))) {
+		//main gameplay loop
+		while(quit == false && stay == false) {
+			
 			input = in.nextLine();
+			
 			switch(input) {
 			
 			case "hit":
 				int newCard = drawNewCard();
 				
+				//add card to extra cards
 				for(int i=0; i<extracards.length; i++) {
 					if(extracards[i] == 0) {
 						extracards[i] = newCard;
@@ -51,49 +73,74 @@ public class BlackJack {
 					}
 				}
 				
+				//add new value to total and tell player cards
 				playervalue += newCard;
-				
 				currentCards();
-				if(checkIfBust()) {
-					bust = true;
-					input = "stay";			
+				
+				//Confirm if drawn card has won player game
+				if(checkIf21()) {
+					messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
+					quit = true;
 				}
+				
+				//If bust, tells player and quits the app
+				if(checkIfBust()) {
+					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
+					quit = true;
+				} else if (checkIf21() == false){
+					in.nextLine();
+				}
+			
 				break;
 			
 			case "stay":
 				System.out.println("You have chosen to stay");
 				currentCards();
+				
 				if(checkIfBust()) {
-					bust = true;		
+					messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
+					quit = true;
 				}
+				
+				stay = true;
 				break;
 				
 			case "quit":
 				System.out.println("You collect your chips and leave the table...");
+				quit = true;
 				break;
+			
 			default:
-				if(!(input.equalsIgnoreCase("quit"))) {
 				System.out.println("Pick an option, please, the dealer doesn't like"
 						+ " small talk.");
-				}
+				break;
 			}
 			
 		}	
-		if(bust == false && !(input.equals("quit"))) {
-			if(hasAce(playerhand)) {
+		
+		if(stay == true) {
+			if(playerHasAce()) {
+				//Loop for number of aces player drew
+				
+				for(int i=0; i<aces; i++) {
+				System.out.println("");
 				System.out.println("You drew an ace, would you like it"
 						+ " to count for 1 or 11?");
 				confirmAce();
+				}
 			}
-		
+	
 			if(checkIfWon()) {
-				winMessage();
+				messages.winMessage(dealer.getFirstCard(), dealer.getSecondCard());
+			} else if (tie == false){
+				messages.lossMessage(dealer.getFirstCard(), dealer.getSecondCard());
 			} else {
-				lossMessage();
+				messages.tieMessage();
 			}
 		}
+	
 		System.out.println("Thank you for playing!");
-}
+	}
 	
 	public void shuffleUpandDeal(int[] hand) {
 		for(int i=0;i<hand.length;i++) {
@@ -124,26 +171,41 @@ public class BlackJack {
 		return card;
 	}
 	
-	public boolean hasAce(int[] hand) {
-		for(int i=0; i<hand.length; i++) {
-			if(hand[i] == 1) {
-				return true;
+	public boolean playerHasAce() {
+		boolean ace = false;
+		
+		for(int i=0; i<playerhand.length;i++) {
+			if(playerhand[i] == 1) {
+				ace = true; aces++;
 			}
 		}
-		return false;
+		
+		for(int i=0; i<extracards.length; i++) {
+			if(extracards[i] == 0) {
+				i = extracards.length - 1;
+			} if (extracards[i] == 1) {
+				ace = true; aces++;
+			}
+		}
+		return ace;
 	}
 	
 	public void confirmAce() {
 		int i = 0;
-		while(i != 1 || i != 11) {
+		boolean b = false;
+		
+		while(b == false) {
 			try {
 				i = in.nextInt();
-				if(i==11){
-					playervalue += 10;
-				}
-				else if (i != 1){
+				
+				if(i == 11) {
+					playervalue+=10;
+				} if(i == 1 || i==11){
+					b = true;
+				} else {
 					System.out.println("Please enter 1 or 11");
 				}
+				
 			} catch (InputMismatchException e) {
 				System.out.println("Please enter 1 or 11");
 				in.nextLine();
@@ -162,30 +224,37 @@ public class BlackJack {
 		return false;
 	}
 	
+	public boolean checkIf21() {
+		if(playervalue == 21) { return true; }
+		
+		//Check that a player has an ace, and if that ace being
+		//11 would result in a 21 (will otherwise register automatically
+		// if a 1.
+		if(playerHasAce()) {
+				int tempValue = playervalue + 10;
+				if(tempValue == 21) {
+					return true;
+				}
+			}
+		return false;
+	}
+	
+	
 	public boolean checkIfWon() {
-		if(playervalue == 21) {
+		if(checkIf21()) {
 			return true;
-		} else if (dealervalue == 21){
+		} else if (dealer.getDealerValue() == 21){
 			return false;
-		} else if(playervalue > dealervalue){
+		} else if(playervalue > dealer.getDealerValue()){
 			return true;
+		} else if (playervalue == dealer.getDealerValue()) {
+			tie = true; return false; 
 		}
 		return false;
 	}
 	
-	public void introMessage() {
-		System.out.println("Welcome to Blackjack! The cards have been dealt"
-				+ " and your hand is " + playerhand[0] + " and " + playerhand[1] + 
-				". Keep in mind face cards are all represented as 10 in this game."
-				+ "The dealer shows " + dealerhand[0] + ". Type hit, stay, or quit.");
-	}
-	
-	public void newCardMessage(int newCard) {
-		System.out.println("You drew a " + newCard + ", "
-				+ "your cards now add up to " + playervalue + ".");
-	}
-	
 	public void currentCards() {
+		System.out.println("");
 		System.out.println("You current cards are: ");
 		for(int i=0; i<playerhand.length;i++) {
 			if(i != 0) {
@@ -203,21 +272,6 @@ public class BlackJack {
 			}
 		}
 		
-	}
-	
-	public void winMessage() {
-		System.out.println("");
-		System.out.println("Dealer reveals his hand, he has a " + dealerhand[0] + 
-				" and a " + dealerhand[1] + ".");
-		System.out.println("Congratulations! You won! "
-				+ "Now cash in before you get ahead of yourself.");
-	}
-	
-	public void lossMessage() {
-		System.out.println("");
-		System.out.println("Dealer reveals his hand, he has a " + dealerhand[0] + 
-				" and a " + dealerhand[1] + ".");
-		System.out.println("Sadly you lost. The house always wins...");
 	}
 	
 	}
