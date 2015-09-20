@@ -29,6 +29,11 @@ public class BlackJackScorer {
 		return tie;
 	}
 	
+	/**
+	 * Checks whether player has been dealt blackjack
+	 * @param playerhand - takes player's hand
+	 * @return true if player has 21
+	 */
 	boolean checkIf21(int[] playerhand) {
 		if(playerhand[0] == 10 && playerhand[1] == 1){
 			return true;
@@ -38,6 +43,13 @@ public class BlackJackScorer {
 		return false;
 	}
 	
+	/**
+	 * Looks at all cards player has drawn, returns true if
+	 * the player has an ace
+	 * @param playerhand 
+	 * @param extracards
+	 * @return
+	 */
 	boolean playerHasAce(int[] playerhand, int[] extracards) {
 		boolean ace = false;
 		
@@ -57,6 +69,10 @@ public class BlackJackScorer {
 		return ace;
 	}
 	
+	/**
+	 * Asks player to confirm 1 or 11 for a drawn ace
+	 * @param in Allows player input
+	 */
 	void confirmAce(Scanner in) {
 		int i = 0;
 		boolean b = false;
@@ -82,7 +98,11 @@ public class BlackJackScorer {
 		in.nextLine();
 	}
 	
-	public boolean checkIfBust() {
+	/**
+	 * Confirms true/false whether player has bust
+	 * @return 
+	 */
+	boolean checkIfBust() {
 		if(playervalue>21){
 			System.out.println("");
 			System.out.println("You've bust I'm afraid!");
@@ -91,6 +111,13 @@ public class BlackJackScorer {
 		return false;
 	}
 	
+	/**
+	 * Compares player value to dealer value and returns
+	 * true false based on who won
+	 * 
+	 * @param dealervalue 
+	 * @return 
+	 */
 	boolean checkIfWon(int dealervalue) {
 		if(playervalue == 21) {
 			return true;

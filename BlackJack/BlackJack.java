@@ -33,11 +33,12 @@ public class BlackJack {
 		stay = false; quit = false;
 	}
 	
-	public static void main(String[] args) {
-		BlackJack bj = new BlackJack();
-		bj.startGame();
-	}
 	
+	/**
+	 * Starts the game by dealing hands to the players, determining
+	 * the value of each of their hands, then checking for blackjack
+	 * for the player, starting the game loop if not.
+	 */
 	public void startGame() {
 		//Deal hands and add up initial values
 		shuffleUpandDeal(playerhand);
@@ -57,6 +58,12 @@ public class BlackJack {
 		}	
 }
 	
+	/**
+	 * Starts game loop for player input, allowing them to hit,
+	 * stay, or quit. The first keeps the player in the loop unless
+	 * bust, the second triggers the dealer and confirms if they win,
+	 * the latter exits the game.
+	 */
 	private void gameLoop() {
 		String input = "";
 		
@@ -124,24 +131,30 @@ public class BlackJack {
 			
 		}	
 		
+	//Determines that a player has stayed in the game rather than quit
 	if(stay == true) {
+		
+		//For each ace player has, determines whether they want
+		//it to count for 1 or 11
 		if(scorer.playerHasAce(playerhand, extracards)) {
-				
-			//Loop for number of aces player drew
 			for(int i=0; i<scorer.getAces(); i++) {
-			messages.aceMessage();
-			scorer.confirmAce(in);				
+				messages.aceMessage();
+				scorer.confirmAce(in);				
 			}
 		}
 	
+		//Determines if score is bust
 		if(scorer.checkIfBust()) {
 			dealer.currentDealerCards();
 			messages.lossMessage();
 		} else {
+			
+			//Triggers dealer behavior, drawing cards while dealer
+			//class determines it necessary, then calling bust if required
+
 			dealer.dealerHandMessage();
 			boolean dealerBust = false;
 			
-			//Confirm if dealer should hit, then check if bust
 			while (dealer.shouldDealerHit(scorer.getPlayerValue())) {
 				int card = drawNewCard();
 				dealer.drawCard(card);
@@ -149,6 +162,8 @@ public class BlackJack {
 				dealerBust = dealer.checkIfBust();
 			}
 			
+			//Final loop to determine whether player won, using
+			//Scorer class
 			if(dealerBust == false) {
 				if(scorer.checkIfWon(dealer.getDealerValue())) {
 					messages.winMessage();
@@ -166,15 +181,24 @@ public class BlackJack {
 	System.out.println("Thank you for playing!");	
 }
 	
-	//Game loop ends here and card drawing functionality begins
 	
-	public void shuffleUpandDeal(int[] hand) {
+	/**
+	 * @param hand - takes player or dealer hand
+	 * 
+	 * Called by game function to draw cards for each hand
+	 */
+	private void shuffleUpandDeal(int[] hand) {
 		for(int i=0;i<hand.length;i++) {
 			int card = drawNewCard();
 			hand[i] = card;
 			}
 		}
 	
+	/**
+	 * Draws a card from the deck and returns it - that card cannot
+	 * be drawn again in the game.
+	 * @return
+	 */
 	private int drawNewCard() {
 		//pick a random suit
 		Random r = new Random();
@@ -197,6 +221,10 @@ public class BlackJack {
 		return card;
 	}
 	
+	/**
+	 * Looks through all cards in the player's hand and 
+	 * prints them out.
+	 */
 	private void currentCards() {
 		System.out.println("");
 		System.out.println("You current cards are: ");
