@@ -1,4 +1,3 @@
-# Practice---Blackjack-Problems
-Practice java problems. Some simple loop problems, and a self created blackjack program.
-The blackjack program currently works as a text based game, and will be converted to a Swing based
-interface game.
+Blackjack
+Personal project creating a Blackjack game. Some practice java problems also included in seperate package.
+Currently a text game, plan to update it using Java Swing library.
